@@ -1,0 +1,18 @@
+[package]
+name = "client_utils_python"
+version = "0.1.1"
+edition = "2021"
+
+[lib]
+name = "client_utils_python"
+crate-type = ["staticlib"]
+
+[workspace]
+
+[dependencies]
+client_utils = { path = "../client_utils" }
+pyo3 = { git="https://github.com/Caudiciform-Studios/pyo3.git", branch="wasmp2_hack", features=["abi3-py312", "extension-module", "serde"]}
+serde = { version="1", features=["derive"]}
+anyhow = "1"
+indexmap = { version = "2", features = ["serde"] }
+wit-bindgen-rt = "0.31.0"
