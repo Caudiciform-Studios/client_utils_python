@@ -10,7 +10,7 @@ crate-type = ["staticlib"]
 [workspace]
 
 [dependencies]
-client_utils = { path = "../client_utils" }
+client_utils = { git = "https://github.com/Caudiciform-Studios/client_utils.git"}
 pyo3 = { git="https://github.com/Caudiciform-Studios/pyo3.git", branch="wasmp2_hack", features=["abi3-py312", "extension-module", "serde"]}
 serde = { version="1", features=["derive"]}
 anyhow = "1"
