@@ -16,3 +16,4 @@ serde = { version="1", features=["derive"]}
 anyhow = "1"
 indexmap = { version = "2", features = ["serde"] }
 wit-bindgen-rt = "0.31.0"
+bincode = "1"
