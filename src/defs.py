@@ -20,7 +20,8 @@ class Bot:
         try:
             m = pickle.loads(load_store())
             self.set_memory(m)
-        except:
+        except Exception as e:
+            print(e)
             pass
 
         if (map := self.map()) is not None:
@@ -36,6 +37,7 @@ class Bot:
                             b.merge(other)
                         except:
                             pass
+            b.cleanup(get_game_state().turn)
 
         command = self.step()
 
