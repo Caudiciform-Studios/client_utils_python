@@ -5,7 +5,7 @@ use serde::{Serialize, Deserialize};
 use ::client_utils::{
     LocSet, LocSetIter, LocMap,
     bindings::{Loc, Command, ActionTarget, EquipmentSlot, Direction},
-    crdt::{ExpiringFWWRegister, ExpiringSet, SizedFWWExpiringSet, CrdtMap, Fww, Lww, Crdt},
+    crdt::{GrowOnlySet, ExpiringFWWRegister, ExpiringSet, SizedFWWExpiringSet, CrdtMap, Fww, Lww, Crdt},
      framework::{ExplorableMap, Map}
 };
 
@@ -78,8 +78,8 @@ pub fn wander<'py>(py: Python<'py>) -> PyResult<Option<Bound<'py, PyAny>>> {
 }
 
 #[pyfunction]
-pub fn attack_nearest<'py>(py: Python<'py>) -> PyResult<Option<Bound<'py, PyAny>>> {
-    if let Some(r) = ::client_utils::behaviors::attack_nearest() {
+pub fn attack_nearest<'py>(py: Python<'py>, exclude_factions: Vec<u32>) -> PyResult<Option<Bound<'py, PyAny>>> {
+    if let Some(r) = ::client_utils::behaviors::attack_nearest(&exclude_factions) {
         Ok(Some(rust_command_to_py_command(r, py)?))
     } else {
         Ok(None)
@@ -251,10 +251,6 @@ impl PyExpiringFWWRegister {
         self.0.set(PyAnyCmp(value.unbind()), now, expires);
     }
 
-    pub fn update_expiry<'py>(&mut self, expires: i64) {
-        self.0.update_expiry(expires);
-    }
-
     pub fn merge<'py>(&mut self, other: &Self) -> PyResult<()> {
         self.0.merge(&other.0).unwrap();
         Ok(())
@@ -285,6 +281,50 @@ impl PyExpiringFWWRegister {
     }
 }
 
+
+#[pyclass(module="client_utils", name="GrowOnlySet")]
+#[derive(Default)]
+struct PyGrowOnlySet(GrowOnlySet<PyAnyCmp>);
+
+#[pymethods]
+impl PyGrowOnlySet {
+    #[new]
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    pub fn insert<'py>(&mut self, value: Bound<'py, PyAny>) {
+        self.0.insert(PyAnyCmp(value.unbind()));
+    }
+
+    pub fn contains<'py>(&mut self, value: Bound<'py, PyAny>) -> bool {
+        self.0.contains(&PyAnyCmp(value.unbind()))
+    }
+
+    pub fn merge<'py>(&mut self, other: &Self) -> PyResult<()> {
+        self.0.merge(&other.0).unwrap();
+        Ok(())
+    }
+
+    pub fn cleanup(&mut self, now: i64) {
+        self.0.cleanup(now);
+    }
+
+    pub fn __getstate__(&self, py: Python) -> PyResult<PyObject> {
+        let d = PySet::empty(py)?;
+        for v in &(self.0).0 {
+            d.add(v.0.clone_ref(py))?;
+        }
+        Ok(d.to_object(py))
+    }
+
+    pub fn __setstate__(&mut self, state: Bound<PySet>) -> PyResult<()> {
+        for v in state.iter() {
+            (self.0).0.insert(PyAnyCmp(v.unbind()));
+        }
+        Ok(())
+    }
+}
 
 #[pyclass(module="client_utils", name="ExpiringSet")]
 #[derive(Default)]
@@ -555,6 +595,7 @@ fn client_utils(module: &Bound<'_, PyModule>) -> PyResult<()> {
 
     module.add_class::<PyExpiringFWWRegister>()?;
     module.add_class::<PyExpiringSet>()?;
+    module.add_class::<PyGrowOnlySet>()?;
     module.add_class::<PySizedFWWExpiringSet>()?;
     module.add_class::<PyFwwCrdtMap>()?;
     module.add_class::<PyLwwCrdtMap>()?;
