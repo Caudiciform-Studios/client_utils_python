@@ -78,7 +78,7 @@ pub fn wander<'py>(py: Python<'py>) -> PyResult<Option<Bound<'py, PyAny>>> {
 }
 
 #[pyfunction]
-pub fn attack_nearest<'py>(py: Python<'py>, exclude_factions: Vec<u32>) -> PyResult<Option<Bound<'py, PyAny>>> {
+pub fn attack_nearest<'py>(py: Python<'py>, exclude_factions: Vec<i64>) -> PyResult<Option<Bound<'py, PyAny>>> {
     if let Some(r) = ::client_utils::behaviors::attack_nearest(&exclude_factions) {
         Ok(Some(rust_command_to_py_command(r, py)?))
     } else {
