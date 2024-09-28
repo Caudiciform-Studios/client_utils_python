@@ -58,6 +58,9 @@ def broadcast(data: Optional[bytes]) -> None:
 def highlight_tiles(tiles: List[types.Loc]) -> None:
     raise NotImplementedError
 
+def highlight_actor(color: Optional[Tuple[float, float, float]]) -> None:
+    raise NotImplementedError
+
 def events() -> List[types.Event]:
     raise NotImplementedError
 

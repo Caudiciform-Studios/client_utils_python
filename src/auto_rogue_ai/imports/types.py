@@ -19,13 +19,6 @@ class Tile:
     name: str
 
 @dataclass
-class Creature:
-    name: str
-    id: int
-    faction: int
-    broadcast: Optional[bytes]
-
-@dataclass
 class Item:
     id: int
     name: str
@@ -191,6 +184,14 @@ class Buff:
     durability: BuffDurability
 
 @dataclass
+class Creature:
+    name: str
+    id: int
+    faction: int
+    buffs: List[Buff]
+    broadcast: Optional[bytes]
+
+@dataclass
 class GameState:
     turn: int
     level_id: int
@@ -231,11 +232,54 @@ class AttackDescription:
     initiator_location: Loc
     amount: int
 
+
+@dataclass
+class ConvertCost_Fixed:
+    value: List[Tuple[str, int]]
+
+
+@dataclass
+class ConvertCost_IncreasePerUse:
+    value: Tuple[List[Tuple[str, int]], List[Tuple[str, int]]]
+
+
+ConvertCost = Union[ConvertCost_Fixed, ConvertCost_IncreasePerUse]
+
+
+
+@dataclass
+class ConvertOutput_Item:
+    value: str
+
+
+@dataclass
+class ConvertOutput_Resources:
+    value: List[Tuple[str, int]]
+
+
+@dataclass
+class ConvertOutput_Population:
+    value: str
+
+
+@dataclass
+class ConvertOutput_TowerHeight:
+    value: int
+
+
+@dataclass
+class ConvertOutput_TowerFinish:
+    pass
+
+
+ConvertOutput = Union[ConvertOutput_Item, ConvertOutput_Resources, ConvertOutput_Population, ConvertOutput_TowerHeight, ConvertOutput_TowerFinish]
+
+
 @dataclass
 class ConvertParams:
-    input: List[Tuple[str, int]]
-    output_items: List[str]
-    output_resources: List[Tuple[str, int]]
+    input: ConvertCost
+    output: List[ConvertOutput]
+    id: int
 
 
 @dataclass
@@ -279,11 +323,16 @@ class MicroAction_PickUp:
 
 
 @dataclass
+class MicroAction_Drop:
+    pass
+
+
+@dataclass
 class MicroAction_AbandonLevel:
     pass
 
 
-MicroAction = Union[MicroAction_Walk, MicroAction_Haul, MicroAction_Attack, MicroAction_ApplyBuff, MicroAction_Convert, MicroAction_Equip, MicroAction_Unequip, MicroAction_PickUp, MicroAction_AbandonLevel]
+MicroAction = Union[MicroAction_Walk, MicroAction_Haul, MicroAction_Attack, MicroAction_ApplyBuff, MicroAction_Convert, MicroAction_Equip, MicroAction_Unequip, MicroAction_PickUp, MicroAction_Drop, MicroAction_AbandonLevel]
 
 
 @dataclass
